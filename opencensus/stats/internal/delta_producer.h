@@ -71,6 +71,8 @@ class DeltaProducer final {
   // Returns a pointer to the singleton DeltaProducer.
   static DeltaProducer* Get();
 
+  void Shutdown();
+
   // Adds a new Measure.
   void AddMeasure();
 
@@ -83,6 +85,8 @@ class DeltaProducer final {
 
   // Flushes the active delta and blocks until it is harvested.
   void Flush() ABSL_LOCKS_EXCLUDED(delta_mu_, harvester_mu_);
+
+  void SetHarvestInterval(const absl::Duration interval);
 
  private:
   DeltaProducer();
@@ -100,7 +104,7 @@ class DeltaProducer final {
   // every harvest_interval_.
   void RunHarvesterLoop();
 
-  const absl::Duration harvest_interval_ = absl::Seconds(5);
+  absl::Duration harvest_interval_ = absl::Seconds(5);
 
   // Guards the active delta and its configuration. Anything that changes the
   // delta configuration (e.g. adding a measure or BucketBoundaries) must
@@ -122,6 +126,9 @@ class DeltaProducer final {
   // thread when calling a flush during harvesting.
   Delta last_delta_ ABSL_GUARDED_BY(harvester_mu_);
   std::thread harvester_thread_ ABSL_GUARDED_BY(harvester_mu_);
+
+  mutable absl::Mutex mu_;
+  bool thread_started_ ABSL_GUARDED_BY(mu_) = false;
 };
 
 }  // namespace stats

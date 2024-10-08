@@ -95,24 +95,56 @@ void StatsExporterImpl::ClearHandlersForTesting() {
 }
 
 void StatsExporterImpl::StartExportThread() ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu_) {
-  t_ = std::thread(&StatsExporterImpl::RunWorkerLoop, this);
   thread_started_ = true;
+  t_ = std::thread(&StatsExporterImpl::RunWorkerLoop, this);
+}
+
+void StatsExporterImpl::Shutdown() {
+  {
+    absl::MutexLock l(&mu_);
+    if (!thread_started_) {
+      return;
+    }
+    thread_started_ = false;
+  }
+  // Join loop thread when shutdown.
+  if (t_.joinable()) {
+    t_.join();
+  }
 }
 
 void StatsExporterImpl::RunWorkerLoop() {
   absl::Time next_export_time = GetNextExportTime();
   while (true) {
     // SleepFor() returns immediately when given a negative duration.
-    absl::SleepFor(next_export_time - absl::Now());
+    absl::SleepFor(absl::Seconds(0.1));
     // In case the last export took longer than the export interval, we
     // calculate the next time from now.
-    next_export_time = GetNextExportTime();
-    Export();
+    if (absl::Now() > next_export_time) {
+      next_export_time = GetNextExportTime();
+      Export();
+    }
+    {
+      absl::MutexLock l(&mu_);
+      if (!thread_started_) {
+        break;
+      }
+    }
   }
 }
 
 // StatsExporter
 // -------------
+
+void StatsExporter::Shutdown() {
+  StatsExporterImpl::Get()->Shutdown();
+  StatsExporterImpl::Get()->ClearHandlersForTesting();
+}
+
+void StatsExporter::ExportNow() {
+  DeltaProducer::Get()->Flush();
+  StatsExporterImpl::Get()->Export();
+}
 
 // static
 void StatsExporter::SetInterval(absl::Duration interval) {

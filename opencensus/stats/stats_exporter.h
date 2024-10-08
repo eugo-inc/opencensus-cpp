@@ -44,6 +44,8 @@ class StatsExporter final {
 
   // Removes the view with 'name' from the registry, if one is registered.
   static void RemoveView(absl::string_view name);
+  static void Shutdown();
+  static void ExportNow();
 
   // StatsExporter::Handler is the interface for push exporters that export
   // recorded data for registered views. The exporter should provide a static
