@@ -75,6 +75,20 @@ DeltaProducer* DeltaProducer::Get() {
   return global_delta_producer;
 }
 
+void DeltaProducer::Shutdown() {
+  {
+    absl::MutexLock l(&mu_);
+    if (!thread_started_) {
+      return;
+    }
+    thread_started_ = false;
+  }
+  // Join loop thread when shutdown.
+  if (harvester_thread_.joinable()) {
+    harvester_thread_.join();
+  }
+}
+
 void DeltaProducer::AddMeasure() {
   delta_mu_.Lock();
   absl::MutexLock harvester_lock(&harvester_mu_);
@@ -115,7 +129,10 @@ void DeltaProducer::Flush() {
 }
 
 DeltaProducer::DeltaProducer()
-    : harvester_thread_(&DeltaProducer::RunHarvesterLoop, this) {}
+    : harvester_thread_(&DeltaProducer::RunHarvesterLoop, this) {
+  absl::MutexLock l(&mu_);
+  thread_started_ = true;
+}
 
 void DeltaProducer::SwapDeltas() {
   ABSL_ASSERT(last_delta_.delta().empty() && "Last delta was not consumed.");
@@ -131,12 +148,24 @@ void DeltaProducer::RunHarvesterLoop() {
   absl::Time next_harvest_time = absl::Now() + harvest_interval_;
   while (true) {
     const absl::Time now = absl::Now();
-    absl::SleepFor(next_harvest_time - now);
+    absl::SleepFor(absl::Seconds(0.1));
     // Account for the possibility that the last harvest took longer than
     // harvest_interval_ and we are already past next_harvest_time.
-    next_harvest_time = std::max(next_harvest_time, now) + harvest_interval_;
-    Flush();
+    if (absl::Now() > next_harvest_time) {
+      next_harvest_time = std::max(next_harvest_time, now) + harvest_interval_;
+      Flush();
+    }
+    {
+      absl::MutexLock l(&mu_);
+      if (!thread_started_) {
+        break;
+      }
+    }
   }
+}
+
+void DeltaProducer::SetHarvestInterval(const absl::Duration interval) {
+  harvest_interval_ = interval;
 }
 
 }  // namespace stats
