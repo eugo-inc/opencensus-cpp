@@ -14,6 +14,8 @@
 
 cmake_minimum_required(VERSION 3.5)
 
+include(GNUInstallDirs)
+
 # Use ccache if it's present.
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
