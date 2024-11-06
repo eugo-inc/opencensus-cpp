@@ -61,11 +61,11 @@ include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
   cmake/OpenCensusConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/OpenCensusConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/cmake/OpenCensusConfig.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenCensus
 )
 
 install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenCensusConfig.cmake
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/OpenCensusConfig.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenCensus
 )
