@@ -60,7 +60,7 @@ install(EXPORT OpenCensusTargets
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
-  cmake/OpenCensusConfig.cmake.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/OpenCensusConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/OpenCensusConfig.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenCensus
 )
