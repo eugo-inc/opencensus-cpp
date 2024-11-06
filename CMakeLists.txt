@@ -14,8 +14,6 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-include(GNUInstallDirs)
-
 # Use ccache if it's present.
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
@@ -27,6 +25,8 @@ project(
   opencensus-cpp
   VERSION 0.5.0
   LANGUAGES CXX)
+
+include(GNUInstallDirs)
 
 option(FUZZER "Either OFF or e.g. -fsanitize=fuzzer,address" OFF)
 option(OpenCensus_BUILD_TESTING "build test and example" OFF)
