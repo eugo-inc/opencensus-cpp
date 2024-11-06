@@ -63,6 +63,7 @@ configure_package_config_file(
   cmake/OpenCensusConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/OpenCensusConfig.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${EXPORT_NAME}
+  PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR BIN_INSTALL_DIR
 )
 
 install(
