@@ -4,5 +4,9 @@ if(NOT absl_FOUND)
   find_package(absl REQUIRED)
 endif()
 
+if(NOT prometheus_cpp_FOUND)
+  find_package(prometheus-cpp REQUIRED)
+endif()
+
 include(${CMAKE_CURRENT_LIST_DIR}/OpenCensusTargets.cmake)
 check_required_components(OpenCensus)
